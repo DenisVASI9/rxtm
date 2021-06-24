@@ -24,7 +24,7 @@ const job = q.createJob()
     })
 ```
 
-#Usage with nest
+# Usage with nest
 ```typescript
 // app.service.ts
 @Injectable()
