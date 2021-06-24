@@ -1,12 +1,13 @@
 import {Job} from "./Job";
 import {v4 as uuidv4} from 'uuid';
+import {Jobs} from "../types/Job";
 
 export class Queue {
 
   constructor(private readonly parallel = 1, private readonly cacheTimeout = 30000) {
   }
 
-  private jobs = []
+  private jobs: Jobs = []
   private performing = 0
 
   private onQueueReady() {
