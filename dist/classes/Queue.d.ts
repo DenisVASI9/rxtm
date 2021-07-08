@@ -10,5 +10,5 @@ export declare class Queue {
     private onJobRemoved;
     private setupJob;
     createJob(): Job;
-    getJob(id: string): any;
+    getJob(id: string): Job | null;
 }

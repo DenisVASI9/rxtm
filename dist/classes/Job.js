@@ -1,29 +1,32 @@
 import { BehaviorSubject } from "rxjs";
-export var EStatus;
-(function (EStatus) {
-    EStatus["process"] = "process";
-    EStatus["completed"] = "completed";
-    EStatus["error"] = "error";
-    EStatus["pending"] = "pending";
-})(EStatus || (EStatus = {}));
+import { take } from "rxjs/operators";
+import { EStatus } from "../types/Job";
 export class Job {
     constructor(jobId) {
         this.jobId = jobId;
-        this.subject = new BehaviorSubject({
-            percent: 0,
-            message: 'job pending',
-            type: EStatus.pending
-        });
         this.steps = [];
         this.onStartCallbacks = [];
         this.onCompleteCallbacks = [];
+        this.msg = "job pending";
+        this.subject = new BehaviorSubject({
+            percent: 0,
+            message: this.msg,
+            type: EStatus.pending
+        });
         this.status = EStatus.pending;
     }
     getId() {
         return this.jobId;
     }
     getObserver() {
-        return this.subject;
+        return this.subject.asObservable();
+    }
+    toPromise() {
+        return new Promise(resolve => {
+            this.subject.pipe(take(1)).subscribe(result => {
+                resolve(result);
+            });
+        });
     }
     isComplete() {
         return this.status === EStatus.completed;
@@ -40,7 +43,7 @@ export class Job {
     errored() {
         this.status = EStatus.error;
     }
-    addStep(step) {
+    step(step) {
         this.steps.push(step);
         return this;
     }
@@ -57,7 +60,7 @@ export class Job {
             for (let i = 1; i < this.steps.length; i++) {
                 if (this.status === EStatus.error)
                     break;
-                await this.steps[i].call(null, firstResult);
+                await this.steps[i].call(this, firstResult);
                 percent += percentStep;
                 this.subject.next({
                     type: i === this.steps.length - 1 ? EStatus.completed : EStatus.process,
@@ -84,6 +87,9 @@ export class Job {
     onComplete(callback) {
         this.onCompleteCallbacks.push(callback);
         return this;
+    }
+    destroy() {
+        this.subject.unsubscribe();
     }
     start() {
         this.onStartCallbacks.forEach(callback => callback());

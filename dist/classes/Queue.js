@@ -28,12 +28,20 @@ export class Queue {
     }
     setupJob(job) {
         const id = job.getId();
+        const DESTROY_JOB = false;
+        const DONT_TOUCH = true;
         job.onStart(() => {
             this.onJobAdded();
         });
         job.onComplete(() => {
             setTimeout(() => {
-                this.jobs = this.jobs.filter((job) => job.getId() !== id);
+                this.jobs = this.jobs.filter((job) => {
+                    if (job.getId() !== id) {
+                        return DONT_TOUCH;
+                    }
+                    job.destroy();
+                    return DESTROY_JOB;
+                });
             }, this.cacheTimeout);
         });
     }

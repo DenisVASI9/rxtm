@@ -17,7 +17,7 @@ const job = q.createJob()
     })
     .start();
 
-  q.getJob(job.getId())
+  q.getJob(job.jobId)
     ?.getObserver()
     .subscribe((res) => {
       console.log(res);
