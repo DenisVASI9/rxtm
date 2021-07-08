@@ -2,10 +2,15 @@
   "compilerOptions": {
     "declaration": true,
     "removeComments": true,
+    "preserveConstEnums": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
-    "target": "es2017",
+    "target": "esnext",
+    "lib": [
+      "esnext",
+      "dom"
+    ],
     "moduleResolution": "Node",
     "sourceMap": true,
     "outDir": "./dist",
@@ -14,3 +19,4 @@
     "strict": true
   }
 }
+
