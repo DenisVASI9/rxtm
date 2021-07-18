@@ -10,6 +10,9 @@ export interface IJobStats {
     message?: string;
     type: keyof typeof EStatus;
 }
+export interface IJobOptions {
+    calculatePercent?: boolean;
+}
 export declare type Jobs = Job[];
 export declare type AnyFunction = (...args: any[]) => any;
 export declare type AnyFunctions = AnyFunction[];

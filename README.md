@@ -49,6 +49,28 @@ export class AppService implements OnModuleInit {
 }
 ```
 
+## Calculate the percentage manually
+```typescript
+  const job1 = q.createJob({
+    calculatePercent: false
+  })
+    .step((_, { setPercent }) => {
+      setPercent(123123);
+      console.log("job 1 step 1");
+      return 11;
+    })
+    .step(() => {
+      console.log("job 1 step 2");
+      return 12;
+    })
+    .step(() => {
+      console.log("job 1 step 3");
+      return 13;
+    })
+    .step((_, { setPercent }) => setPercent(100))
+    .start();
+```
+
 ## Nest controller
 ```typescript
 // app.controller.ts

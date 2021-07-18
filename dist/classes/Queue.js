@@ -47,9 +47,11 @@ export class Queue {
             }, this.cacheTimeout);
         });
     }
-    createJob() {
+    createJob(options = {
+        calculatePercent: true
+    }) {
         const jobId = uuidv4();
-        const job = new Job(jobId);
+        const job = new Job(jobId, options);
         this.setupJob(job);
         this.jobs.push(job);
         return job;

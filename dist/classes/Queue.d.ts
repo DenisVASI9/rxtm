@@ -1,4 +1,5 @@
 import { Job } from "./Job";
+import { IJobOptions } from "../types/Job";
 export declare class Queue {
     private readonly parallel;
     private readonly cacheTimeout;
@@ -9,6 +10,6 @@ export declare class Queue {
     private onJobAdded;
     private onJobRemoved;
     private setupJob;
-    createJob(): Job;
+    createJob(options?: IJobOptions): Job;
     getJob(id: string): Job | null;
 }

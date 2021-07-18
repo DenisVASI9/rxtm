@@ -1,6 +1,6 @@
 import {Job} from "./Job";
 import {v4 as uuidv4} from 'uuid';
-import {Jobs} from "../types/Job";
+import { IJobOptions, Jobs } from "../types/Job";
 
 export class Queue {
 
@@ -54,9 +54,11 @@ export class Queue {
     })
   }
 
-  createJob(): Job {
+  createJob(options: IJobOptions = {
+    calculatePercent: true
+  }): Job {
     const jobId = uuidv4();
-    const job = new Job(jobId);
+    const job = new Job(jobId, options);
     this.setupJob(job);
     this.jobs.push(job);
     return job;

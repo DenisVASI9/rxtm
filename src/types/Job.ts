@@ -1,4 +1,4 @@
-import {Job} from "../classes/Job";
+import { Job } from "../classes/Job";
 
 export enum EStatus {
   process = "process",
@@ -11,6 +11,10 @@ export interface IJobStats {
   percent: number;
   message?: string;
   type: keyof typeof EStatus
+}
+
+export interface IJobOptions {
+  calculatePercent?: boolean
 }
 
 export type Jobs = Job[]
