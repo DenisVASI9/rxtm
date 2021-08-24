@@ -1,6 +1,2 @@
-import { Job } from './classes/Job'
-import { Queue } from './classes/Queue'
-
-export {
-  Job, Queue
-}
+export * from './classes/Job';
+export * from './classes/Queue';
