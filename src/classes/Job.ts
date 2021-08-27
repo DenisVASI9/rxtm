@@ -1,9 +1,14 @@
-import { BehaviorSubject } from "rxjs";
-import { take } from "rxjs/operators";
-import { AnyFunction, AnyFunctions, EStatus, IJobOptions, IJobStats } from "../types/Job";
+import { BehaviorSubject, firstValueFrom, isObservable } from 'rxjs';
+import { take } from 'rxjs/operators';
+import {
+  AnyFunction,
+  AnyFunctions,
+  EStatus,
+  IJobOptions,
+  IJobStats,
+} from '../types/Job';
 
 export class Job {
-
   constructor(private readonly jobId: string, options: IJobOptions) {
     this.options = options;
   }
@@ -11,14 +16,14 @@ export class Job {
   private steps: AnyFunctions = [];
   private onStartCallbacks: AnyFunctions = [];
   private onCompleteCallbacks: AnyFunctions = [];
-  private msg = "job pending";
-  private percent: number = 0;
+  private msg = 'job pending';
+  private percent = 0;
   private readonly options: IJobOptions = {};
 
   private subject = new BehaviorSubject<IJobStats>({
     type: EStatus.pending,
     percent: 0,
-    message: this.msg
+    message: this.msg,
   });
 
   status = EStatus.pending;
@@ -32,8 +37,8 @@ export class Job {
   }
 
   toPromise() {
-    return new Promise(resolve => {
-      this.subject.pipe(take(1)).subscribe(result => {
+    return new Promise((resolve) => {
+      this.subject.pipe(take(1)).subscribe((result) => {
         resolve(result);
       });
     });
@@ -74,25 +79,34 @@ export class Job {
     }
   }
 
+  private async callStep(step: AnyFunction, lastResult = null) {
+    const result = await step.call(null, lastResult, {
+      setPercent: this.setPercent.bind(this),
+    });
+
+    if (isObservable(result)) {
+      return await firstValueFrom(result);
+    }
+
+    return result;
+  }
+
   async run() {
     try {
-      let lastResult = await this.steps[0].call(null, null, {
-        setPercent: this.setPercent.bind(this)
-      });
+      let lastResult = await this.callStep(this.steps[0]);
       this.calculatePercent();
       this.subject.next({
         type: this.steps.length === 1 ? EStatus.completed : EStatus.process,
-        percent: this.percent
+        percent: this.percent,
       });
       for (let i = 1; i < this.steps.length; i++) {
         if (this.status === EStatus.error) break;
-        lastResult = await this.steps[i].call(null, lastResult, {
-          setPercent: this.setPercent.bind(this)
-        });
+        lastResult = await this.callStep(this.steps[i], lastResult);
         this.calculatePercent();
         this.subject.next({
-          type: i === this.steps.length - 1 ? EStatus.completed : EStatus.process,
-          percent: this.percent
+          type:
+            i === this.steps.length - 1 ? EStatus.completed : EStatus.process,
+          percent: this.percent,
         });
         if (this.percent === 100) {
           this.status = EStatus.completed;
@@ -103,7 +117,7 @@ export class Job {
       this.subject.next({
         type: EStatus.error,
         message: e.message,
-        percent: this.percent
+        percent: this.percent,
       });
     }
   }
@@ -123,12 +137,12 @@ export class Job {
   }
 
   start() {
-    this.onStartCallbacks.forEach(callback => callback());
+    this.onStartCallbacks.forEach((callback) => callback());
     return { jobId: this.jobId };
   }
 
   end() {
     this.status = EStatus.completed;
-    this.onCompleteCallbacks.forEach(callback => callback());
+    this.onCompleteCallbacks.forEach((callback) => callback());
   }
 }

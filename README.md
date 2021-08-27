@@ -24,7 +24,7 @@ const job = q.createJob()
     })
 ```
 
-# Usage with nest
+# Using with nest
 ## Nest service
 ```typescript
 // app.service.ts
@@ -49,6 +49,52 @@ export class AppService implements OnModuleInit {
 }
 ```
 
+## Nest controller
+```typescript
+// app.controller.ts
+@Controller()
+export class AppController {
+  constructor(private readonly appService: AppService) {}
+
+  @Get()
+  createTask(): {jobId: string} {
+    return this.appService.createTimeoutTask()
+  }
+
+  @Get(':id')
+  getStatus(@Param('id') id): any {
+    return this.appService.q.getJob(id)?.toPromise()
+  }
+}
+```
+# Using with Observable
+```typescript
+const job1 = q
+  .createJob()
+  .step(
+    () =>
+      new Observable((subscriber) => {
+        subscriber.next(100);
+      }),
+  )
+  .step((res) => {
+    console.log('job 1 step 2', res);
+    return 11;
+  })
+  .step(() => {
+    console.log('job 1 step 3');
+    return 12;
+  })
+  .step((_, { setPercent }) => setPercent(100))
+  .start();
+
+q.getJob(job1.jobId)
+  ?.getObserver()
+  .subscribe((res) => {
+    console.log(res);
+  });
+```
+
 ## Calculate the percentage manually
 ```typescript
   const job1 = q.createJob({
@@ -71,28 +117,10 @@ export class AppService implements OnModuleInit {
     .start();
 ```
 
-## Nest controller
-```typescript
-// app.controller.ts
-@Controller()
-export class AppController {
-  constructor(private readonly appService: AppService) {}
-
-  @Get()
-  createTask(): {jobId: string} {
-    return this.appService.createTimeoutTask()
-  }
-
-  @Get(':id')
-  getStatus(@Param('id') id): any {
-    return this.appService.q.getJob(id)?.toPromise()
-  }
-}
-```
-
 # Parallel execution
 To determine how tasks are executed and to adjust the load in the Queue constructor you can pass the number of tasks that can be executed asynchronously
 
 ```typescript
 const q = new Queue(5)
 ```
+
