@@ -16,6 +16,7 @@ export class Job {
   private steps: AnyFunctions = [];
   private onStartCallbacks: AnyFunctions = [];
   private onCompleteCallbacks: AnyFunctions = [];
+  private onCatchCallbacks: AnyFunctions = [];
   private msg = 'job pending';
   private percent = 0;
   private readonly options: IJobOptions = {};
@@ -114,6 +115,7 @@ export class Job {
         }
       }
     } catch (e) {
+      this.onCatchCallbacks.forEach((func) => func(e));
       this.subject.next({
         type: EStatus.error,
         message: e.message,
@@ -123,17 +125,28 @@ export class Job {
   }
 
   onStart(callback: AnyFunction) {
-    this.onStartCallbacks.push(callback);
+    if (typeof callback === 'function') {
+      this.onStartCallbacks.push(callback);
+    }
     return this;
   }
 
   onComplete(callback: AnyFunction) {
-    this.onCompleteCallbacks.push(callback);
+    if (typeof callback === 'function') {
+      this.onCompleteCallbacks.push(callback);
+    }
     return this;
   }
 
   destroy() {
     this.subject.unsubscribe();
+  }
+
+  catch(callback) {
+    if (typeof callback === 'function') {
+      this.onCatchCallbacks.push(callback);
+    }
+    return this;
   }
 
   start() {

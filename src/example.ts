@@ -17,9 +17,13 @@ const job1 = q
   })
   .step(() => {
     console.log('job 1 step 3');
+    throw new Error('Test error');
     return 12;
   })
   .step((_, { setPercent }) => setPercent(100))
+  .catch((error) => {
+    console.log('error', error);
+  })
   .start();
 
 q.getJob(job1.jobId)

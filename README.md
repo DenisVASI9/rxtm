@@ -117,6 +117,32 @@ q.getJob(job1.jobId)
     .start();
 ```
 
+## Catching errors
+```typescript
+const job1 = q
+    .createJob()
+    .step(
+        () =>
+            new Observable((subscriber) => {
+                subscriber.next(100);
+            }),
+    )
+    .step((res) => {
+        console.log('job 1 step 2', res);
+        return 11;
+    })
+    .step(() => {
+        console.log('job 1 step 3');
+        throw new Error('Test error');
+        return 12;
+    })
+    .step((_, { setPercent }) => setPercent(100))
+    .catch((error) => {
+        console.log('error', error);
+    })
+    .start();
+```
+
 # Parallel execution
 To determine how tasks are executed and to adjust the load in the Queue constructor you can pass the number of tasks that can be executed asynchronously
 
