@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Job = void 0;
 const rxjs_1 = require("rxjs");
-const Job_1 = require("../types/Job");
+const types_1 = require("../types");
 class Job {
     constructor(jobId, options) {
         this.jobId = jobId;
@@ -13,13 +13,19 @@ class Job {
         this.msg = 'job pending';
         this.percent = 0;
         this.step_number = 0;
+        this.lastResult = null;
         this.options = {};
         this.subject = new rxjs_1.BehaviorSubject({
-            type: Job_1.EStatus.pending,
+            type: types_1.EStatus.pending,
             percent: 0,
             message: this.msg,
         });
-        this.status = Job_1.EStatus.pending;
+        this.self = {
+            setPercent: this.setPercent.bind(this),
+            getPreviousResult: this.getPreviousResult.bind(this),
+            sendData: this.sendData.bind(this),
+        };
+        this.status = types_1.EStatus.pending;
         this.options = options;
     }
     getId() {
@@ -29,19 +35,26 @@ class Job {
         return this.subject.asObservable();
     }
     isComplete() {
-        return this.status === Job_1.EStatus.completed;
+        return this.status === types_1.EStatus.completed;
     }
     isPerformed() {
-        return this.status === Job_1.EStatus.process;
+        return this.status === types_1.EStatus.process;
     }
     isPending() {
-        return this.status === Job_1.EStatus.pending;
+        return this.status === types_1.EStatus.pending;
     }
     process() {
-        this.status = Job_1.EStatus.process;
+        this.status = types_1.EStatus.process;
+    }
+    sendData(data) {
+        this.subject.next({
+            type: types_1.EStatus.data,
+            percent: this.percent,
+            data,
+        });
     }
     errored() {
-        this.status = Job_1.EStatus.error;
+        this.status = types_1.EStatus.error;
     }
     step(step) {
         this.steps.push(step);
@@ -50,15 +63,16 @@ class Job {
     setPercent(percent) {
         this.percent = percent;
     }
+    getPreviousResult() {
+        return this.lastResult;
+    }
     calculatePercent(percentStep = 100 / this.steps.length) {
         if (this.options.calculatePercent) {
             this.percent += percentStep;
         }
     }
-    async callStep(step, lastResult = null) {
-        const result = await step.call(null, lastResult, {
-            setPercent: this.setPercent.bind(this),
-        });
+    async callStep(step) {
+        const result = await step.call(null, this.self);
         if (rxjs_1.isObservable(result)) {
             return await rxjs_1.firstValueFrom(result);
         }
@@ -66,24 +80,24 @@ class Job {
     }
     async run() {
         try {
-            let lastResult = await this.callStep(this.steps[0]);
+            this.lastResult = await this.callStep(this.steps[0]);
             this.calculatePercent();
             this.subject.next({
-                type: this.steps.length === 1 ? Job_1.EStatus.completed : Job_1.EStatus.process,
+                type: this.steps.length === 1 ? types_1.EStatus.completed : types_1.EStatus.process,
                 percent: this.percent,
             });
             for (let i = 1; i < this.steps.length; i++) {
                 this.step_number = i;
-                if (this.status === Job_1.EStatus.error)
+                if (this.status === types_1.EStatus.error)
                     break;
-                lastResult = await this.callStep(this.steps[i], lastResult);
+                this.lastResult = await this.callStep(this.steps[i]);
                 this.calculatePercent();
                 this.subject.next({
-                    type: i === this.steps.length - 1 ? Job_1.EStatus.completed : Job_1.EStatus.process,
+                    type: i === this.steps.length - 1 ? types_1.EStatus.completed : types_1.EStatus.process,
                     percent: this.percent,
                 });
-                if (this.percent === 100) {
-                    this.status = Job_1.EStatus.completed;
+                if (this.percent >= 100) {
+                    this.status = types_1.EStatus.completed;
                     this.end();
                 }
             }
@@ -91,7 +105,7 @@ class Job {
         catch (e) {
             this.onCatchCallbacks.forEach((func) => func(e, this.step_number));
             this.subject.next({
-                type: Job_1.EStatus.error,
+                type: types_1.EStatus.error,
                 message: e.message,
                 percent: this.percent,
             });
@@ -103,7 +117,7 @@ class Job {
         }
         return this;
     }
-    onComplete(callback) {
+    complete(callback) {
         if (typeof callback === 'function') {
             this.onCompleteCallbacks.push(callback);
         }
@@ -123,8 +137,8 @@ class Job {
         return { jobId: this.jobId };
     }
     end() {
-        this.status = Job_1.EStatus.completed;
-        this.onCompleteCallbacks.forEach((callback) => callback());
+        this.status = types_1.EStatus.completed;
+        this.onCompleteCallbacks.forEach((callback) => callback(this.self));
     }
 }
 exports.Job = Job;

@@ -5,12 +5,20 @@ export enum EStatus {
   completed = 'completed',
   error = 'error',
   pending = 'pending',
+  data = 'data',
 }
 
 export interface IJobStats {
   percent: number;
   message?: string;
   type: keyof typeof EStatus;
+  data?: any;
+}
+
+export interface IStepContext {
+  setPercent(percent: number): void;
+  getPreviousResult();
+  sendData(data: any);
 }
 
 export interface IJobOptions {

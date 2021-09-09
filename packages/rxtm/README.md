@@ -77,15 +77,15 @@ const job1 = q
         subscriber.next(100);
       }),
   )
-  .step((res) => {
-    console.log('job 1 step 2', res);
+  .step((self) => {
+    console.log('job 1 step 2', self.getPreviousResult());
     return 11;
   })
   .step(() => {
     console.log('job 1 step 3');
     return 12;
   })
-  .step((_, { setPercent }) => setPercent(100))
+  .step(self) => self.setPercent(100))
   .start();
 
 q.getJob(job1.jobId)
@@ -100,8 +100,8 @@ q.getJob(job1.jobId)
   const job1 = q.createJob({
     calculatePercent: false
   })
-    .step((_, { setPercent }) => {
-      setPercent(123123);
+    .step(self => {
+        self.setPercent(123123);
       console.log("job 1 step 1");
       return 11;
     })
@@ -113,7 +113,7 @@ q.getJob(job1.jobId)
       console.log("job 1 step 3");
       return 13;
     })
-    .step((_, { setPercent }) => setPercent(100))
+    .step(self) => self.setPercent(100))
     .start();
 ```
 
@@ -127,8 +127,8 @@ const job1 = q
                 subscriber.next(100);
             }),
     )
-    .step((res) => {
-        console.log('job 1 step 2', res);
+    .step((self) => {
+        console.log('job 1 step 2', self.getPreviousResult());
         return 11;
     })
     .step(() => {
@@ -136,7 +136,7 @@ const job1 = q
         throw new Error('Test error');
         return 12;
     })
-    .step((_, { setPercent }) => setPercent(100))
+    .step(self) => self.setPercent(100))
     .catch((error, step) => {
         console.log('error', error, step);
         switch (step) {
@@ -147,6 +147,36 @@ const job1 = q
         }
     })
     .start();
+```
+
+## Send custom data
+```typescript
+const job1 = q
+  .createJob()
+  .step(
+    () =>
+      new Observable((subscriber) => {
+        subscriber.next(100);
+      }),
+  )
+  .step((self) => {
+    const r = self.getPreviousResult();
+    console.log('job 1 step 2', r);
+    return 11;
+  })
+  .step(() => {
+    console.log('job 1 step 3');
+    // throw new Error('Test error');
+    return 12;
+  })
+  .step((self: IStepContext) => self.setPercent(100))
+  .complete((self) => {
+    self.sendData({ data: 123 });
+  })
+  .catch((error, i) => {
+    console.log('error', error, i);
+  })
+  .start();
 ```
 
 # Parallel execution

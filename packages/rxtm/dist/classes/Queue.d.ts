@@ -1,5 +1,5 @@
 import { Job } from './Job';
-import { IJobOptions } from '../types/Job';
+import { IJobOptions } from '../types';
 export declare class Queue {
     private readonly parallel;
     private readonly cacheTimeout;

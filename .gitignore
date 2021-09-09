@@ -1,6 +1,13 @@
-../../node_modules
+# main
 .idea
 
+# packages
+/packages/rxtm/node_modules
+/packages/rxtm-nest/node_modules
+
+/packages/rxtm/.idea
+/packages/rxtm-nest/.idea
+
 # examples
-./examples/rxtm-example/node_modules
-./examples/rxtm-example/.idea
+/examples/rxtm-example/node_modules
+/examples/rxtm-example/.idea

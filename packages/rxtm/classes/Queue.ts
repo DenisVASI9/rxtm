@@ -1,6 +1,6 @@
 import { Job } from './Job';
 import { v4 as uuidv4 } from 'uuid';
-import { IJobOptions, Jobs } from '../types/Job';
+import { IJobOptions, Jobs } from '../types';
 
 export class Queue {
   constructor(
@@ -42,7 +42,7 @@ export class Queue {
       this.onJobAdded();
     });
 
-    job.onComplete(() => {
+    job.complete(() => {
       setTimeout(() => {
         this.jobs = this.jobs.filter((job) => {
           if (job.getId() !== id) {

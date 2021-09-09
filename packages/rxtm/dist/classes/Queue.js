@@ -36,7 +36,7 @@ class Queue {
         job.onStart(() => {
             this.onJobAdded();
         });
-        job.onComplete(() => {
+        job.complete(() => {
             setTimeout(() => {
                 this.jobs = this.jobs.filter((job) => {
                     if (job.getId() !== id) {

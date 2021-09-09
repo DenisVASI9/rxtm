@@ -5,7 +5,7 @@ import {
   EStatus,
   IJobOptions,
   IJobStats,
-} from '../types/Job';
+} from '../types';
 
 export class Job {
   constructor(private readonly jobId: string, options: IJobOptions) {
@@ -19,6 +19,7 @@ export class Job {
   private msg = 'job pending';
   private percent = 0;
   private step_number = 0;
+  private lastResult = null;
   private readonly options: IJobOptions = {};
 
   private subject = new BehaviorSubject<IJobStats>({
@@ -26,6 +27,12 @@ export class Job {
     percent: 0,
     message: this.msg,
   });
+
+  private self = {
+    setPercent: this.setPercent.bind(this),
+    getPreviousResult: this.getPreviousResult.bind(this),
+    sendData: this.sendData.bind(this),
+  };
 
   status = EStatus.pending;
 
@@ -53,6 +60,14 @@ export class Job {
     this.status = EStatus.process;
   }
 
+  private sendData(data: any) {
+    this.subject.next({
+      type: EStatus.data,
+      percent: this.percent,
+      data,
+    });
+  }
+
   errored() {
     this.status = EStatus.error;
   }
@@ -66,16 +81,18 @@ export class Job {
     this.percent = percent;
   }
 
+  getPreviousResult() {
+    return this.lastResult;
+  }
+
   private calculatePercent(percentStep = 100 / this.steps.length) {
     if (this.options.calculatePercent) {
       this.percent += percentStep;
     }
   }
 
-  private async callStep(step: AnyFunction, lastResult = null) {
-    const result = await step.call(null, lastResult, {
-      setPercent: this.setPercent.bind(this),
-    });
+  private async callStep(step: AnyFunction) {
+    const result = await step.call(null, this.self);
 
     if (isObservable(result)) {
       return await firstValueFrom(result);
@@ -86,7 +103,7 @@ export class Job {
 
   async run() {
     try {
-      let lastResult = await this.callStep(this.steps[0]);
+      this.lastResult = await this.callStep(this.steps[0]);
       this.calculatePercent();
       this.subject.next({
         type: this.steps.length === 1 ? EStatus.completed : EStatus.process,
@@ -96,14 +113,14 @@ export class Job {
         // Синхронизируем шаг задачи c циклом, чтобы отдавать его в catch
         this.step_number = i;
         if (this.status === EStatus.error) break;
-        lastResult = await this.callStep(this.steps[i], lastResult);
+        this.lastResult = await this.callStep(this.steps[i]);
         this.calculatePercent();
         this.subject.next({
           type:
             i === this.steps.length - 1 ? EStatus.completed : EStatus.process,
           percent: this.percent,
         });
-        if (this.percent === 100) {
+        if (this.percent >= 100) {
           this.status = EStatus.completed;
           this.end();
         }
@@ -125,7 +142,7 @@ export class Job {
     return this;
   }
 
-  onComplete(callback: AnyFunction) {
+  complete(callback: AnyFunction) {
     if (typeof callback === 'function') {
       this.onCompleteCallbacks.push(callback);
     }
@@ -150,6 +167,6 @@ export class Job {
 
   end() {
     this.status = EStatus.completed;
-    this.onCompleteCallbacks.forEach((callback) => callback());
+    this.onCompleteCallbacks.forEach((callback) => callback(this.self));
   }
 }
