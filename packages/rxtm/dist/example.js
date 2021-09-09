@@ -14,15 +14,15 @@ const job1 = q
     console.log('job 1 step 2', r);
     return 11;
 })
-    .step(() => {
-    console.log('job 1 step 3');
+    .step((self) => {
+    console.log('job 1 step 3', self.getPreviousResult());
     return 12;
 })
     .step((self) => {
+    console.log('step 2 data:', self.getPreviousResult(2));
     self.setPercent(100);
     return { test: 123 };
 })
-    .complete((self) => self.getPreviousResult())
     .catch((error, i) => {
     console.log('error', error, i);
 })

@@ -186,6 +186,17 @@ const job1 = q
     .complete((self) => self.getPreviousResult())
 ```
 
+## Get step result by step number
+```typescript
+   q
+    .createJob()
+    .step((self: IStepContext) => {
+        console.log('step 2 data:', self.getPreviousResult(2));
+        self.setPercent(100);
+        return { test: 123 };
+    })
+```
+
 # Parallel execution
 To determine how tasks are executed and to adjust the load in the Queue constructor you can pass the number of tasks that can be executed asynchronously
 

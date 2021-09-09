@@ -8,8 +8,8 @@ export declare class Job {
     private onCatchCallbacks;
     private msg;
     private percent;
-    private step_number;
-    private lastResult;
+    private stepNumber;
+    private results;
     private readonly options;
     private subject;
     private self;
@@ -24,7 +24,7 @@ export declare class Job {
     errored(): void;
     step(step: AnyFunction): this;
     private setPercent;
-    getPreviousResult(): any;
+    getPreviousResult(index?: number): any;
     private calculatePercent;
     private callStep;
     run(): Promise<void>;

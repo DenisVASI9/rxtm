@@ -18,8 +18,8 @@ export class Job {
   private onCatchCallbacks: AnyFunctions = [];
   private msg = 'job pending';
   private percent = 0;
-  private step_number = 0;
-  private lastResult = null;
+  private stepNumber = 0;
+  private results = [];
   private readonly options: IJobOptions = {};
 
   private subject = new BehaviorSubject<IJobStats>({
@@ -81,8 +81,15 @@ export class Job {
     this.percent = percent;
   }
 
-  getPreviousResult() {
-    return this.lastResult;
+  getPreviousResult(index = 0) {
+    if (index) {
+      const len = this.results.length - 1;
+      return this.results[len];
+    }
+
+    console.log(this.results);
+
+    return this.results[0];
   }
 
   private calculatePercent(percentStep = 100 / this.steps.length) {
@@ -95,15 +102,15 @@ export class Job {
     const result = await step.call(null, this.self);
 
     if (isObservable(result)) {
-      return await firstValueFrom(result);
+      return this.results.push(await firstValueFrom(result));
     }
 
-    return result;
+    return this.results.push(result);
   }
 
   async run() {
     try {
-      this.lastResult = await this.callStep(this.steps[0]);
+      await this.callStep(this.steps[0]);
       this.calculatePercent();
       this.subject.next({
         type:
@@ -114,9 +121,9 @@ export class Job {
       });
       for (let i = 1; i < this.steps.length; i++) {
         // Синхронизируем шаг задачи c циклом, чтобы отдавать его в catch
-        this.step_number = i;
+        this.stepNumber = i;
         if (this.status === EStatus.error) break;
-        this.lastResult = await this.callStep(this.steps[i]);
+        await this.callStep(this.steps[i]);
         this.calculatePercent();
         this.subject.next({
           type:
@@ -131,7 +138,7 @@ export class Job {
         }
       }
     } catch (e) {
-      this.onCatchCallbacks.forEach((func) => func(e, this.step_number));
+      this.onCatchCallbacks.forEach((func) => func(e, this.stepNumber));
       this.subject.next({
         type: EStatus.error,
         message: e.message,

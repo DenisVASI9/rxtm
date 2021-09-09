@@ -12,8 +12,8 @@ class Job {
         this.onCatchCallbacks = [];
         this.msg = 'job pending';
         this.percent = 0;
-        this.step_number = 0;
-        this.lastResult = null;
+        this.stepNumber = 0;
+        this.results = [];
         this.options = {};
         this.subject = new rxjs_1.BehaviorSubject({
             type: types_1.EStatus.pending,
@@ -63,8 +63,13 @@ class Job {
     setPercent(percent) {
         this.percent = percent;
     }
-    getPreviousResult() {
-        return this.lastResult;
+    getPreviousResult(index = 0) {
+        if (index) {
+            const len = this.results.length - 1;
+            return this.results[len];
+        }
+        console.log(this.results);
+        return this.results[0];
     }
     calculatePercent(percentStep = 100 / this.steps.length) {
         if (this.options.calculatePercent) {
@@ -74,13 +79,13 @@ class Job {
     async callStep(step) {
         const result = await step.call(null, this.self);
         if (rxjs_1.isObservable(result)) {
-            return await rxjs_1.firstValueFrom(result);
+            return this.results.push(await rxjs_1.firstValueFrom(result));
         }
-        return result;
+        return this.results.push(result);
     }
     async run() {
         try {
-            this.lastResult = await this.callStep(this.steps[0]);
+            await this.callStep(this.steps[0]);
             this.calculatePercent();
             this.subject.next({
                 type: this.steps.length === 1 && this.onCompleteCallbacks.length <= 1
@@ -89,10 +94,10 @@ class Job {
                 percent: this.percent,
             });
             for (let i = 1; i < this.steps.length; i++) {
-                this.step_number = i;
+                this.stepNumber = i;
                 if (this.status === types_1.EStatus.error)
                     break;
-                this.lastResult = await this.callStep(this.steps[i]);
+                await this.callStep(this.steps[i]);
                 this.calculatePercent();
                 this.subject.next({
                     type: i === this.steps.length - 1 && this.onCompleteCallbacks.length <= 1
@@ -107,7 +112,7 @@ class Job {
             }
         }
         catch (e) {
-            this.onCatchCallbacks.forEach((func) => func(e, this.step_number));
+            this.onCatchCallbacks.forEach((func) => func(e, this.stepNumber));
             this.subject.next({
                 type: types_1.EStatus.error,
                 message: e.message,

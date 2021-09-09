@@ -17,7 +17,7 @@ export interface IJobStats {
 
 export interface IStepContext {
   setPercent(percent: number): void;
-  getPreviousResult();
+  getPreviousResult(index: number);
   sendData(data: any);
 }
 
