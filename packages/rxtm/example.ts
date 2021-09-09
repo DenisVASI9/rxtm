@@ -19,7 +19,7 @@ const job1 = q
   })
   .step((self) => {
     console.log('job 1 step 3', self.getPreviousResult());
-    // throw new Error('Test error');
+    throw new Error('Test error');
     return 12;
   })
   .step((self: IStepContext) => {
@@ -28,7 +28,7 @@ const job1 = q
     return { test: 123 };
   })
   // .complete((self) => self.getPreviousResult())
-  .catch((error, i) => {
+  .catch((error, self, i) => {
     console.log('error', error, i);
   })
   .start();

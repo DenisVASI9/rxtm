@@ -87,8 +87,6 @@ export class Job {
       return this.results[len];
     }
 
-    console.log(this.results);
-
     return this.results[0];
   }
 
@@ -138,7 +136,9 @@ export class Job {
         }
       }
     } catch (e) {
-      this.onCatchCallbacks.forEach((func) => func(e, this.stepNumber));
+      this.onCatchCallbacks.forEach((func) =>
+        func(e, this.self, this.stepNumber),
+      );
       this.subject.next({
         type: EStatus.error,
         message: e.message,

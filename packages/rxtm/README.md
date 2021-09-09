@@ -137,7 +137,7 @@ const job1 = q
         return 12;
     })
     .step(self) => self.setPercent(100))
-    .catch((error, step) => {
+    .catch((error, self, step) => {
         console.log('error', error, step);
         switch (step) {
             case 1: {
@@ -173,7 +173,7 @@ const job1 = q
   .complete((self) => {
     self.sendData({ data: 123 });
   })
-  .catch((error, i) => {
+  .catch((error, self, i) => {
     console.log('error', error, i);
   })
   .start();
