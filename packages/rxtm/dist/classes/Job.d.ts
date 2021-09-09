@@ -8,12 +8,12 @@ export declare class Job {
     private onCatchCallbacks;
     private msg;
     private percent;
+    private step_number;
     private readonly options;
     private subject;
     status: EStatus;
     getId(): string;
     getObserver(): import("rxjs").Observable<IJobStats>;
-    toPromise(): Promise<unknown>;
     isComplete(): boolean;
     isPerformed(): boolean;
     isPending(): boolean;

@@ -1,5 +1,4 @@
 import { BehaviorSubject, firstValueFrom, isObservable } from 'rxjs';
-import { take } from 'rxjs/operators';
 import {
   AnyFunction,
   AnyFunctions,
@@ -19,6 +18,7 @@ export class Job {
   private onCatchCallbacks: AnyFunctions = [];
   private msg = 'job pending';
   private percent = 0;
+  private step_number = 0;
   private readonly options: IJobOptions = {};
 
   private subject = new BehaviorSubject<IJobStats>({
@@ -35,14 +35,6 @@ export class Job {
 
   getObserver() {
     return this.subject.asObservable();
-  }
-
-  toPromise() {
-    return new Promise((resolve) => {
-      this.subject.pipe(take(1)).subscribe((result) => {
-        resolve(result);
-      });
-    });
   }
 
   isComplete() {
@@ -101,6 +93,8 @@ export class Job {
         percent: this.percent,
       });
       for (let i = 1; i < this.steps.length; i++) {
+        // Синхронизируем шаг задачи c циклом, чтобы отдавать его в catch
+        this.step_number = i;
         if (this.status === EStatus.error) break;
         lastResult = await this.callStep(this.steps[i], lastResult);
         this.calculatePercent();
@@ -115,7 +109,7 @@ export class Job {
         }
       }
     } catch (e) {
-      this.onCatchCallbacks.forEach((func) => func(e));
+      this.onCatchCallbacks.forEach((func) => func(e, this.step_number));
       this.subject.next({
         type: EStatus.error,
         message: e.message,

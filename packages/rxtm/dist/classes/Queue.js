@@ -49,7 +49,7 @@ class Queue {
         });
     }
     createJob(options = {
-        calculatePercent: true
+        calculatePercent: true,
     }) {
         const jobId = uuid_1.v4();
         const job = new Job_1.Job(jobId, options);

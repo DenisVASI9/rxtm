@@ -19,8 +19,8 @@ const job1 = q
     return 12;
 })
     .step((_, { setPercent }) => setPercent(100))
-    .catch((error) => {
-    console.log('error', error);
+    .catch((error, i) => {
+    console.log('error', error, i);
 })
     .start();
 (_a = q.getJob(job1.jobId)) === null || _a === void 0 ? void 0 : _a.getObserver().subscribe((res) => {

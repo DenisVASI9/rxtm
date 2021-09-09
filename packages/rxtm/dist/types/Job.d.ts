@@ -1,4 +1,4 @@
-import { Job } from "../classes/Job";
+import { Job } from '../classes/Job';
 export declare enum EStatus {
     process = "process",
     completed = "completed",

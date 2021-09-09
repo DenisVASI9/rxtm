@@ -1,10 +1,10 @@
 {
   "name": "rxtm",
-  "version": "1.0.11",
+  "version": "1.0.13",
   "description": "simple FIFO/queue with rx",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc"
+    "build": "tsc",
+    "pub": "npm publish --access public"
   },
   "repository": "https://github.com/DenisVASI9/rxtm",
   "keywords": [],
@@ -19,7 +19,7 @@
   "types": "dist/index.d.ts",
   "files": [
     "dist",
-    "src"
+    "README.md"
   ],
   "devDependencies": {
     "@types/node": "^15.9.0",

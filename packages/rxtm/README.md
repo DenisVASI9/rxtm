@@ -137,8 +137,14 @@ const job1 = q
         return 12;
     })
     .step((_, { setPercent }) => setPercent(100))
-    .catch((error) => {
-        console.log('error', error);
+    .catch((error, step) => {
+        console.log('error', error, step);
+        switch (step) {
+            case 1: {
+                // ... code
+                break;
+            }
+        }
     })
     .start();
 ```

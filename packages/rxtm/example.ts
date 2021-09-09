@@ -5,12 +5,9 @@ const q = new Queue(4);
 
 const job1 = q
   .createJob()
-  .step(
-    () =>
-      new Observable((subscriber) => {
-        subscriber.next(100);
-      }),
-  )
+  .step(() => new Observable((subscriber) => {
+      subscriber.next(100);
+  }))
   .step((res) => {
     console.log('job 1 step 2', res);
     return 11;
@@ -21,8 +18,8 @@ const job1 = q
     return 12;
   })
   .step((_, { setPercent }) => setPercent(100))
-  .catch((error) => {
-    console.log('error', error);
+  .catch((error, i) => {
+    console.log('error', error, i);
   })
   .start();
 

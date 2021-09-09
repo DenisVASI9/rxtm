@@ -2,7 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Job = void 0;
 const rxjs_1 = require("rxjs");
-const operators_1 = require("rxjs/operators");
 const Job_1 = require("../types/Job");
 class Job {
     constructor(jobId, options) {
@@ -13,6 +12,7 @@ class Job {
         this.onCatchCallbacks = [];
         this.msg = 'job pending';
         this.percent = 0;
+        this.step_number = 0;
         this.options = {};
         this.subject = new rxjs_1.BehaviorSubject({
             type: Job_1.EStatus.pending,
@@ -27,13 +27,6 @@ class Job {
     }
     getObserver() {
         return this.subject.asObservable();
-    }
-    toPromise() {
-        return new Promise((resolve) => {
-            this.subject.pipe(operators_1.take(1)).subscribe((result) => {
-                resolve(result);
-            });
-        });
     }
     isComplete() {
         return this.status === Job_1.EStatus.completed;
@@ -80,6 +73,7 @@ class Job {
                 percent: this.percent,
             });
             for (let i = 1; i < this.steps.length; i++) {
+                this.step_number = i;
                 if (this.status === Job_1.EStatus.error)
                     break;
                 lastResult = await this.callStep(this.steps[i], lastResult);
@@ -95,7 +89,7 @@ class Job {
             }
         }
         catch (e) {
-            this.onCatchCallbacks.forEach((func) => func(e));
+            this.onCatchCallbacks.forEach((func) => func(e, this.step_number));
             this.subject.next({
                 type: Job_1.EStatus.error,
                 message: e.message,
