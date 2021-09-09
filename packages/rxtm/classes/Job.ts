@@ -60,9 +60,9 @@ export class Job {
     this.status = EStatus.process;
   }
 
-  private sendData(data: any) {
+  private sendData(data: any, status = this.status) {
     this.subject.next({
-      type: EStatus.data,
+      type: status || EStatus.data,
       percent: this.percent,
       data,
     });
@@ -106,7 +106,10 @@ export class Job {
       this.lastResult = await this.callStep(this.steps[0]);
       this.calculatePercent();
       this.subject.next({
-        type: this.steps.length === 1 ? EStatus.completed : EStatus.process,
+        type:
+          this.steps.length === 1 && this.onCompleteCallbacks.length <= 1
+            ? EStatus.completed
+            : EStatus.process,
         percent: this.percent,
       });
       for (let i = 1; i < this.steps.length; i++) {
@@ -117,7 +120,9 @@ export class Job {
         this.calculatePercent();
         this.subject.next({
           type:
-            i === this.steps.length - 1 ? EStatus.completed : EStatus.process,
+            i === this.steps.length - 1 && this.onCompleteCallbacks.length <= 1
+              ? EStatus.completed
+              : EStatus.process,
           percent: this.percent,
         });
         if (this.percent >= 100) {
@@ -167,6 +172,11 @@ export class Job {
 
   end() {
     this.status = EStatus.completed;
-    this.onCompleteCallbacks.forEach((callback) => callback(this.self));
+    this.onCompleteCallbacks.forEach(async (callback) => {
+      const returned = await callback(this.self);
+      if (returned) {
+        this.sendData(returned, EStatus.completed);
+      }
+    });
   }
 }

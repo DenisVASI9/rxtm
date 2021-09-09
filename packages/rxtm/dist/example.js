@@ -18,10 +18,11 @@ const job1 = q
     console.log('job 1 step 3');
     return 12;
 })
-    .step((self) => self.setPercent(100))
-    .complete((self) => {
-    self.sendData({ data: 123 });
+    .step((self) => {
+    self.setPercent(100);
+    return { test: 123 };
 })
+    .complete((self) => self.getPreviousResult())
     .catch((error, i) => {
     console.log('error', error, i);
 })

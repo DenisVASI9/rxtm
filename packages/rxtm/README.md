@@ -179,6 +179,13 @@ const job1 = q
   .start();
 ```
 
+## Return data from complete callback
+```typescript
+   q
+    .createJob()
+    .complete((self) => self.getPreviousResult())
+```
+
 # Parallel execution
 To determine how tasks are executed and to adjust the load in the Queue constructor you can pass the number of tasks that can be executed asynchronously
 

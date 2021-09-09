@@ -46,9 +46,9 @@ class Job {
     process() {
         this.status = types_1.EStatus.process;
     }
-    sendData(data) {
+    sendData(data, status = this.status) {
         this.subject.next({
-            type: types_1.EStatus.data,
+            type: status || types_1.EStatus.data,
             percent: this.percent,
             data,
         });
@@ -83,7 +83,9 @@ class Job {
             this.lastResult = await this.callStep(this.steps[0]);
             this.calculatePercent();
             this.subject.next({
-                type: this.steps.length === 1 ? types_1.EStatus.completed : types_1.EStatus.process,
+                type: this.steps.length === 1 && this.onCompleteCallbacks.length <= 1
+                    ? types_1.EStatus.completed
+                    : types_1.EStatus.process,
                 percent: this.percent,
             });
             for (let i = 1; i < this.steps.length; i++) {
@@ -93,7 +95,9 @@ class Job {
                 this.lastResult = await this.callStep(this.steps[i]);
                 this.calculatePercent();
                 this.subject.next({
-                    type: i === this.steps.length - 1 ? types_1.EStatus.completed : types_1.EStatus.process,
+                    type: i === this.steps.length - 1 && this.onCompleteCallbacks.length <= 1
+                        ? types_1.EStatus.completed
+                        : types_1.EStatus.process,
                     percent: this.percent,
                 });
                 if (this.percent >= 100) {
@@ -138,7 +142,12 @@ class Job {
     }
     end() {
         this.status = types_1.EStatus.completed;
-        this.onCompleteCallbacks.forEach((callback) => callback(this.self));
+        this.onCompleteCallbacks.forEach(async (callback) => {
+            const returned = await callback(this.self);
+            if (returned) {
+                this.sendData(returned, types_1.EStatus.completed);
+            }
+        });
     }
 }
 exports.Job = Job;
