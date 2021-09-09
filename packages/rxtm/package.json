@@ -1,6 +1,6 @@
 {
   "name": "rxtm",
-  "version": "1.0.17",
+  "version": "1.0.18",
   "description": "simple FIFO/queue with rx",
   "scripts": {
     "build": "tsc",

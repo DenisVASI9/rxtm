@@ -68,7 +68,6 @@ class Job {
             const len = this.results.length - 1;
             return this.results[len];
         }
-        console.log(this.results);
         return this.results[0];
     }
     calculatePercent(percentStep = 100 / this.steps.length) {
@@ -112,7 +111,7 @@ class Job {
             }
         }
         catch (e) {
-            this.onCatchCallbacks.forEach((func) => func(e, this.stepNumber));
+            this.onCatchCallbacks.forEach((func) => func(e, this.self, this.stepNumber));
             this.subject.next({
                 type: types_1.EStatus.error,
                 message: e.message,
