@@ -24,7 +24,7 @@ export declare class Job {
     errored(): void;
     step(step: AnyFunction): this;
     private setPercent;
-    getPreviousResult(index?: number): any;
+    getPreviousResult(index?: any): any;
     private calculatePercent;
     private callStep;
     run(): Promise<void>;

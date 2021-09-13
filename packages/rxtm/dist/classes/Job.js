@@ -63,12 +63,12 @@ class Job {
     setPercent(percent) {
         this.percent = percent;
     }
-    getPreviousResult(index = 0) {
-        if (index) {
+    getPreviousResult(index = undefined) {
+        if (!index && index !== 0) {
             const len = this.results.length - 1;
             return this.results[len];
         }
-        return this.results[0];
+        return this.results[index];
     }
     calculatePercent(percentStep = 100 / this.steps.length) {
         if (this.options.calculatePercent) {

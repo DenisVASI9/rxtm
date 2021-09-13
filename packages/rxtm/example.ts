@@ -19,11 +19,11 @@ const job1 = q
   })
   .step((self) => {
     console.log('job 1 step 3', self.getPreviousResult());
-    throw new Error('Test error');
+    // throw new Error('Test error');
     return 12;
   })
   .step((self: IStepContext) => {
-    console.log('step 2 data:', self.getPreviousResult(2));
+    console.log('step 0 data:', self.getPreviousResult(0));
     self.setPercent(100);
     return { test: 123 };
   })

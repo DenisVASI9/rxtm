@@ -81,13 +81,14 @@ export class Job {
     this.percent = percent;
   }
 
-  getPreviousResult(index = 0) {
-    if (index) {
+  getPreviousResult(index = undefined) {
+    // Проверяем на ноль, потому что массив результатов идет с 0
+    if (!index && index !== 0) {
       const len = this.results.length - 1;
       return this.results[len];
     }
 
-    return this.results[0];
+    return this.results[index];
   }
 
   private calculatePercent(percentStep = 100 / this.steps.length) {

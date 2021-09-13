@@ -1,6 +1,6 @@
 {
   "name": "rxtm",
-  "version": "1.0.18",
+  "version": "1.1.1",
   "description": "simple FIFO/queue with rx",
   "scripts": {
     "build": "tsc",
@@ -19,7 +19,8 @@
   "types": "dist/index.d.ts",
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "package.json"
   ],
   "devDependencies": {
     "@types/node": "^15.9.0",
